@@ -1,0 +1,3 @@
+[submodule "ThirdParty/Actress"]
+	path = ThirdParty/Actress
+	url = https://github.com/RFS-6ro/Actress.git
