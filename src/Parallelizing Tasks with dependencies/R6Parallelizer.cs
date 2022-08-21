@@ -32,7 +32,7 @@ namespace R6Tasks.Parallelizing
                 token = _cts.Token;
             }
             
-            _inbox = MailboxProcessor.Start<TaskMessage>(Loop, token);
+            _inbox = MailboxProcessor.Start<TaskMessage>(Loop, _cts);
 
             _inbox.Errors.Subscribe(new ExceptionObserver());
         }
@@ -116,6 +116,8 @@ namespace R6Tasks.Parallelizing
                 Task.Run(() =>
 #pragma warning restore 4014
                 {
+                    _cts.Token.ThrowIfCancellationRequested();
+                    
                     DateTimeOffset start = DateTimeOffset.Now;
 #if DEBUG
                     Debug.Assert(queueTaskMessage.TaskInfo != null, "queueTask.TaskInfo != null");
@@ -149,7 +151,8 @@ namespace R6Tasks.Parallelizing
 
                         dependentOperations.ForEach((nestedOperation) => inbox.Post(new QueueTask(nestedOperation)));
                     }
-                });
+                }, 
+                cancellationToken: _cts.Token);
 
                 await LoopImpl(inbox, tasks, edges);
             }
